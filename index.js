@@ -1,7 +1,7 @@
 const functions = require("@google-cloud/functions-framework");
 const axios = require("axios");
 const redis = require("redis");
-const { send } = require("./src/utils");
+const send = require("./src/utils");
 
 require("dotenv").config();
 
