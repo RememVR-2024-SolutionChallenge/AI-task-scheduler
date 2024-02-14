@@ -6,7 +6,7 @@ The gateway server triggers this function whenever a request is received, and th
 
 ## 🛠 Architecture
 
-<img width="662" alt="image" src="https://github.com/RememberMe-2024-SolutionChallenge/AI-task-scheduler/assets/54667577/925788fa-4da1-428d-8103-caa971cd6ae0">
+![architecture](./docs/assets/architecture.png)
 
 ## ❓ Why didn't you use GCP Cloud Tasks?
 
