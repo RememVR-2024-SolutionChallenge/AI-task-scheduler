@@ -41,7 +41,7 @@ functions.http("engineTrigger", async (req, res) => {
 
   // 3. Trigger `AI Engine` to process the next task.
   await axios
-    .post(process.env.AI_ENGINE_URL, { taskId: taskId })
+    .post(process.env.AI_ENGINE_URL + `/api/train/scene/${taskId}`)
     .catch(async (err) => {
       return send(res, redisClient, 500, "AI Engine: Error");
     });
