@@ -5,11 +5,6 @@ const send = require("./src/utils");
 
 require("dotenv").config();
 
-console.log("redis client connecting...");
-const redisClient = redis.createClient({
-  url: `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}/0`,
-});
-
 // 0. Setup CORS && Connect to `Redis Queue`
 // 1. Check status of `AI Engine`.
 // 2. Get the next task from `Redis Queue`.
@@ -19,6 +14,10 @@ const redisClient = redis.createClient({
 
 functions.http("engineTrigger", async (req, res) => {
   console.log("AI Engine triggering process has started.");
+  console.log("redis client connecting...");
+  const redisClient = await redis.createClient({
+    url: `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}/0`,
+  });
 
   // 0. Setup CORS && Connect to `Redis Queue`
   res.set("Access-Control-Allow-Origin", "*");
@@ -27,6 +26,7 @@ functions.http("engineTrigger", async (req, res) => {
   } catch (err) {
     return await send(res, redisClient, 500, "Redis Queue: Error");
   }
+  console.log("Stage 0 Finished");
 
   // 1. Check status of `AI Engine`.
   try {
@@ -37,6 +37,7 @@ functions.http("engineTrigger", async (req, res) => {
   } catch (err) {
     return await send(res, redisClient, 500, "AI Engine: Error (GET /)");
   }
+  console.log("Stage 1 Finished");
 
   // 2. Get the next task from `Redis Queue`.
   let taskId;
@@ -53,10 +54,12 @@ functions.http("engineTrigger", async (req, res) => {
       "Redis Queue: Error getting next task."
     );
   }
+  console.log("Stage 2 Finished");
 
   // 3. Update current task and pop `Redis Queue`
   await redisClient.set("ai-current-task", taskId);
   await redisClient.lPop("ai-queue");
+  console.log("Stage 3 Finished");
 
   // 4. Trigger `AI Engine` to process the next task.
   try {
@@ -64,6 +67,7 @@ functions.http("engineTrigger", async (req, res) => {
   } catch (err) {
     return send(res, redisClient, 500, "AI Engine: Error (POST /train)");
   }
+  console.log("Stage 4 Finished");
 
   // 5. Response to requestor
   console.log("AI Engine Successfully Triggered.", taskId);
