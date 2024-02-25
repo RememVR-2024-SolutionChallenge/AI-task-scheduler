@@ -13,8 +13,8 @@ const redisClient = redis.createClient({
 // 0. Setup CORS && Connect to `Redis Queue`
 // 1. Check status of `AI Engine`.
 // 2. Get the next task from `Redis Queue`.
-// 3. Trigger `AI Engine` to process the next task.
-// 4. Update current task and pop `Redis Queue`
+// 3. Update current task and pop `Redis Queue`
+// 4. Trigger `AI Engine` to process the next task.
 // 5. Response to requestor
 
 functions.http("engineTrigger", async (req, res) => {
@@ -54,16 +54,16 @@ functions.http("engineTrigger", async (req, res) => {
     );
   }
 
-  // 3. Trigger `AI Engine` to process the next task.
+  // 3. Update current task and pop `Redis Queue`
+  await redisClient.set("ai-current-task", taskId);
+  await redisClient.lPop("ai-queue");
+
+  // 4. Trigger `AI Engine` to process the next task.
   try {
     await axios.post(process.env.AI_ENGINE_URL + `/api/train/${taskId}`);
   } catch (err) {
     return send(res, redisClient, 500, "AI Engine: Error (POST /train)");
   }
-
-  // 4. Update current task and pop `Redis Queue`
-  await redisClient.set("ai-current-task", taskId);
-  await redisClient.lPop("ai-queue");
 
   // 5. Response to requestor
   console.log("AI Engine Successfully Triggered.", taskId);
